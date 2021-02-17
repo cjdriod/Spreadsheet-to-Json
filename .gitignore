@@ -3,3 +3,4 @@ output
 venv
 data
 .env
+*.pyc
