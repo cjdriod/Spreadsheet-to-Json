@@ -45,7 +45,7 @@ except FileNotFoundError:
 
 
 try:
-    with open(get_concat_data_directory_path('preset-dir.json')) as f:
+    with open(get_concat_data_directory_path('preset-directory.json')) as f:
         PRESET_OUTPUT_DIRS = json.load(f)
 
 except FileNotFoundError:
