@@ -5,38 +5,41 @@ from app.controllers.google_service_controller import GoogleServiceController as
 from config.configuration import (
     SOURCE_1,
     SOURCE_2,
-    ARTIFACT_LOOKUP_DICTIONARY,
+    ACCESS_TOKEN,
+    CREDENTIAL_FILE,
     PRESET_OUTPUT_DIRS,
-    ENABLE_EMPTY_DATA_FILTER
+    ENABLE_EMPTY_DATA_FILTER,
+    ARTIFACT_LOOKUP_DICTIONARY
 )
 
 selected_output_dir = os.path.join(os.getcwd(), 'output')
 
 
 def serve_application():
-    job_list = []
+    authentication = Auth(token=ACCESS_TOKEN, default_credential=CREDENTIAL_FILE)
+    is_login = authentication.login()
 
-    for source in [SOURCE_1, SOURCE_2]:
-        if source.get('namespace'):
-            instance = Auth(token=source.get('access_token_path'), default_credential=source.get('credential_path'))
-            result = instance.login()
+    if is_login:
+        job_list = []
 
-            if result:
-                job_list.append({
-                    "namespace": source.get('namespace'),
-                    "sheet_name": source.get('sheet_name'),
-                    "sheet_id": source.get('spreadsheet_id'),
-                    "credential": instance.get_session_credential(),
-                })
+        for source in [SOURCE_1, SOURCE_2]:
+            job_list.append({
+                "namespace": source.get('namespace'),
+                "sheet_name": source.get('sheet_name'),
+                "sheet_id": source.get('spreadsheet_id'),
+                "primary_key": source.get('primary_key'),
+                "credential": authentication.get_session_credential(),
+                "custom_sheet_range": source.get('custom_sheet_range'),
+            })
 
-    render_preset_directory_selection_options()
+        render_preset_directory_selection_options()
 
-    print('Selected output directory: {}'.format(selected_output_dir))
+        print('Selected output directory: {}'.format(selected_output_dir))
 
-    print('Working on, please wait...')
+        print('Working on, please wait...')
 
-    for job in job_list:
-        generate_json_file(job)
+        for job in job_list:
+            generate_json_file(job)
 
 
 def render_preset_directory_selection_options():
@@ -60,16 +63,24 @@ def render_preset_directory_selection_options():
 
 
 def generate_json_file(sheet_meta):
+    sheet_id = sheet_meta.get('sheet_id')
     namespace = sheet_meta.get('namespace')
     sheet_name = sheet_meta.get('sheet_name')
-    sheet_id = sheet_meta.get('sheet_id')
     credential = sheet_meta.get('credential')
+    primary_key = sheet_meta.get('primary_key')
+    custom_range = sheet_meta.get('custom_sheet_range')
 
     if namespace and sheet_name and sheet_id and credential:
         output_base_uri = os.path.join(selected_output_dir, namespace)
 
-        instance = GService(namespace=namespace, sheet_id=sheet_id, sheet_name=sheet_name, credential=credential)
-        result = instance.retrieve_spreadsheet_content()
+        instance = GService(
+            namespace=namespace,
+            sheet_id=sheet_id,
+            sheet_name=sheet_name,
+            credential=credential,
+            custom_range=custom_range
+        )
+        result = instance.retrieve_spreadsheet_content(primary_key)
 
         if result:
             print()  # for CLI decoration purpose only
@@ -77,17 +88,28 @@ def generate_json_file(sheet_meta):
             if not os.path.isdir(output_base_uri):
                 os.makedirs(output_base_uri)
 
-            for key in ARTIFACT_LOOKUP_DICTIONARY:
-                export_uri = os.path.join(output_base_uri, ARTIFACT_LOOKUP_DICTIONARY.get(key))
+            artifact_lookup_table = get_output_directory_list(result.get('titles'))
+            data_sets = result.get('values')
+
+            for key in artifact_lookup_table:
+                export_uri = os.path.join(output_base_uri, '{}.json'.format(artifact_lookup_table.get(key)))
 
                 with open(export_uri, 'w', encoding='utf-8') as json_file:
-                    data = result.get(key, dict())
+                    content = data_sets.get(key, dict())
 
                     if ENABLE_EMPTY_DATA_FILTER:
                         # remove data that hold empty string
-                        data = {key: value for (key, value) in data.items() if value}
+                        content = {key: value for (key, value) in content.items() if value}
 
-                    dump(data, json_file, ensure_ascii=False, sort_keys=True, indent=2)
+                    dump(content, json_file, ensure_ascii=False, sort_keys=True, indent=2)
                     json_file.write('\n')
 
-                    print('Export to {} successfully [{}]'.format(export_uri, namespace))
+                    print('[{}] Export to {} successfully'.format(namespace, export_uri))
+
+
+def get_output_directory_list(columns):
+    if ARTIFACT_LOOKUP_DICTIONARY:
+        return ARTIFACT_LOOKUP_DICTIONARY
+    elif isinstance(columns, list) and len(columns):
+        return dict(zip(columns, columns))
+    return dict()
