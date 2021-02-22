@@ -2,6 +2,10 @@
 
 **This is a python scripts for retrieving Google spreadsheet content and convert data into JSON files**
 
+Use case:
+* Get a list of user responses for each question from a Google Form result
+* Generate locale files for you application by getting value from your spreadsheet [[example project spreadsheet](https://docs.google.com/spreadsheets/d/1FhgZIa07IStNoei-Yt61JjJeGh-EIqqMxm6vLE85_wc/edit#gid=0)]
+
 ![Language](https://img.shields.io/github/languages/top/cjdriod/Spreadsheet-to-Json?style=flat-square)
 ![Size](https://img.shields.io/github/repo-size/cjdriod/Spreadsheet-to-Json?style=flat-square)
 
@@ -11,7 +15,7 @@
 * **The [pip](https://pypi.org/project/pip/) package management tool**
 * **Google Account**
 
-### Basic Usage
+### Basic usage
 Install virtualenv via pip:
 ```
 $ pip install virtualenv
@@ -22,13 +26,13 @@ $ virtualenv --version
 ```
 <br>
 
-1. Create a virtual environment for a project:
+1. Create a virtual environment for a project
 ```
 $ cd project_folder
 $ virtualenv venv
 ```
 
-2. To begin using the virtual environment, it needs to be activated:
+2. To begin using the virtual environment, it needs to be activated
 ```
 $ source venv/bin/activate
 
@@ -41,67 +45,37 @@ venv\Scripts\activate
 $ pip install -r requirements.txt
 ```
 
-4. Create `.env` file (you can refer `.env.example` file or [environment configuration below](#%EF%B8%8F-config-environment-variables)
-<br>
+4. Create a `.env` file, you can refer `.env.example` file or [environment configuration below](#required-variables)
+
+5. Get login credential JSON file from Google Cloud Spreadsheet service and save the file to `./data` directory  
+ps: You can get the file from [this steps](https://developers.google.com/sheets/api/quickstart/python?authuser=1#step_1_turn_on_the)
    
 ## ⚙️ Config Environment Variables
-> **LOCALHOST_PORT**  
-> `Type: Int | Default: 0`  
-> 
-> Google OAuth 2.0 service authentication page hosting port number.
+### Required variables
+| Key                     | Type   |  Description                                                                                                                                                                                                                     |
+|-------------------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| SOURCE_1_NAMESPACE      | String | An identifier for the current task, also the output folder name in your output directory.                                                                                                                                        |
+| SOURCE_1_SPREADSHEET_ID | String | Your Google Spreadsheet sheet ID number.<br> E.g. `https://docs.google.com/spreadsheets/d/1FhgZIa07IStNoei-Yt61JjJeGh-EIqqMxm6vLE85_wc/edit#gid=0` <br /><br /> `SOURCE_1_SPREADSHEET_ID = 1FhgZIa07IStNoei-Yt61JjJeGh-EIqqMxm6vLE85_wc` |
+| SOURCE_1_SHEET_NAME     | String | The Google Spreadsheet sheet name that you want to get data from. <br /> E.g. `SOURCE_1_SHEET_NAME = Demo` <br /><br /> ![spreadsheet sheet name screenshot](public/image/spreadsheet_sheet_name_screenshot.PNG)                           |
 
-> **EMPTY_DATA_FILTER**  
-> `Type: Bool | Default: False | Options: (True || False)`  
-> 
-> Google OAuth 2.0 service authentication page hosting port number.
+### Optional variables
+| Key                             | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                          | Default                     |
+|---------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------|
+| SOURCE_1_SHEET_PRIMARY_KEY_NAME | String | A unique key for your record also the key value for your json object, the script will auto select A1 column value from your spreadsheet if this variable is not set.                                                                                                                                                                                                                         | Spreadsheet A1 column value |
+| SOURCE_1_SHEET_CUSTOM_RANGE     | String | Sheet range that you would like to export only.<br>E.g. `SOURCE_1_SHEET_CUSTOM_RANGE = B1:O`  means highlight from `B1` column to entire `o` column<br><br>Refers [Google Spreadsheet range annotation guide](https://developers.google.com/sheets/api/guides/concepts#a1_notation) for more details                                                                                                 |                             |
+| LOCALHOST_PORT                  | Int    | Google OAuth 2.0 service authentication page hosting port number.                                                                                                                                                                                                                                                                                                                                    | 0                           |
+| EMPTY_DATA_FILTER               | Bool   | This value is for removing empty values in your record.                                                                                                                                                                                                                                                                                                                                              | False                       |
+| CREDENTIAL_FILE_NAME            | String | The credential file that provided by Google Cloud when enabling the Spreadsheet API service.  <br>E.g. `credentials.json -> SOURCE_1_CREDENTIAL_FILE_NAME = credentials`<br><br>Refers [Google Spreadsheet documentation](https://developers.google.com/sheets/api/quickstart/python?authuser=1#step_1_turn_on_the) steps to get the credential file.<br><br>***Note: Exclude file extension name*** | credentials                 |
+| ACCESS_TOKEN_FILE_NAME          | String | File name that store your session access token.<br>                                                                                                                                                                                                                                                                                                                                                  | token                       |
 
-> **SOURCE_1_NAMESPACE**  
-> `Type: String | Required: True`
-> 
-> An identifier for the current task, also the output folder name in your output directory.
-  
-> **SOURCE_1_CREDENTIAL_FILE_NAME**  
-> `Type: String | Required: True`
-> 
-> The credential file name that provided by Google Cloud when enabling the api service.  
-> E.g. `credentail.json -> SOURCE_1_CREDENTIAL_FILE_NAME = credential`
-> 
-> ***Note: Exclude file extension name!***  
->
-> Refers [Google Spreadsheet documentation](https://developers.google.com/sheets/api/quickstart/python) steps to obtain the credential file
-
-> **SOURCE_1_ACCESS_TOKEN_FILE_NAME**  
-> `Type: String | Required: True`
-> 
-> File that store your session access token  
-> 
-> Note: The file name must be **UNIQUE**
-
-> **SOURCE_1_SPREADSHEET_ID**  
-> `Type: String | Required: True`
-> 
-> Your Google Spreadsheet sheet ID number
-> ```
-> E.g.
-> https://docs.google.com/spreadsheets/d/1FhgZIa07IStNoei-Yt61JjJeGh-EIqqMxm6vLE85_wc/edit#gid=0
-> SOURCE_1_SPREADSHEET_ID = 1FhgZIa07IStNoei-Yt61JjJeGh-EIqqMxm6vLE85_wc
-> ```
-
-> **SOURCE_1_SHEET_NAME**  
-> `Type: String | Required: True`
-> 
-> The Google Spreadsheet sheet name that you want to get data from  
-> E.g. `SOURCE_1_SHEET_NAME = Demo`
-> >![spreadsheet sheet name screenshot](public/image/spreadsheet_sheet_name_screenshot.PNG)
-
->**Note: Add ons**  
+> **Extra environment variables**  
 > This script reserve another sets of environment variable to perform 2 jobs in 1 script run.   
-> Below are the environment variables:
+> Below are the extra environment variables:
 > - SOURCE_2_NAMESPACE
 > - SOURCE_2_SHEET_NAME
 > - SOURCE_2_SPREADSHEET_ID
-> - SOURCE_2_CREDENTIAL_FILE_NAME
-> - SOURCE_2_ACCESS_TOKEN_FILE_NAME  
+> - SOURCE_2_SHEET_PRIMARY_KEY_NAME
+> - SOURCE_2_SHEET_CUSTOM_RANGE  
 > 
 > Note: You can add more variables and modify the scripts based on your needs
 
@@ -147,7 +121,8 @@ _Ps: These are not environment variables_
 
 ## 🩹 Limitation
 - Only design to export JSON file
-- Only design to export entire spreadsheet data, unable to performs specific range data capture or formatting which supported by Google Spreadsheet API.
+- Unable to performs multiples sheet range data capture and column data formatting feature which supported by 
+  Google Spreadsheet.
 
 Happy Coding~ you can modify the script based on your needs 🏀
 
@@ -173,9 +148,9 @@ feat: add hat wobble
 - test: (adding missing tests, refactoring tests; no production code change)
 - chore: (updating grunt tasks etc; no production code change)
 
-### Pull Request Title
-The title of the pull request are required to follow commit message format [above](#commit-message-format)  
-PR description can be added for more context references
+### Pull request (PR) title and description formatting
+The title of the PR same as commit message format [above](#commit-message-format)  
+The PR description can be added for more context references
 
 ### Linting
 Please use linting tools below to ensure your pull request compliance with [PEP 8](https://www.python.org/dev/peps/pep-0008/) standard 
@@ -184,7 +159,7 @@ Please use linting tools below to ensure your pull request compliance with [PEP 
 
 Note: The maintainer reserved the rights to NOT merge the PR, if failed to follow any requirement listed above
 
-## 🎊 Authors and acknowledgment
+## 🎊 Authors and Acknowledgment
 - cjdriod [ [jacklim.cj@gmail.com](mailto:jacklim.cj@gmail.com) ]
 
 ## 📝 License
