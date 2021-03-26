@@ -18,6 +18,8 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 LOCALHOST_PORT = config('LOCALHOST_PORT', cast=int, default=0)
 
+DEFAULT_OUTPUT_URI = config('DEFAULT_OUTPUT_URI', default=None)
+
 ENABLE_EMPTY_DATA_FILTER = config('EMPTY_DATA_FILTER', cast=bool, default=False)
 
 CREDENTIAL_FILE = get_concat_data_directory_path(config('CREDENTIAL_FILE_NAME', default='credentials'))
