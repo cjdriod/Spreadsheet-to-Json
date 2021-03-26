@@ -8,11 +8,12 @@ from config.configuration import (
     ACCESS_TOKEN,
     CREDENTIAL_FILE,
     PRESET_OUTPUT_DIRS,
+    DEFAULT_OUTPUT_URI,
     ENABLE_EMPTY_DATA_FILTER,
     ARTIFACT_LOOKUP_DICTIONARY
 )
 
-selected_output_dir = os.path.join(os.getcwd(), 'output')
+selected_output_dir = DEFAULT_OUTPUT_URI or os.path.join(os.getcwd(), 'output')
 
 
 def serve_application():
