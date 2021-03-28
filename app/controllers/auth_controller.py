@@ -1,8 +1,17 @@
 import pickle
+import logging
 import os.path
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from config.configuration import SCOPES, LOCALHOST_PORT
+
+logger = logging.getLogger('__name__')
+logger.setLevel(logging.ERROR)
+
+file_handler = logging.FileHandler('log/debug.log')
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+
+logger.addHandler(file_handler)
 
 
 class AuthController:
@@ -21,13 +30,19 @@ class AuthController:
 
         if not (credential and credential.valid):
 
-            if credential and credential.expired and credential.refresh_token:
-                credential.refresh(Request())
+            try:
+                if credential and credential.expired and credential.refresh_token:
+                    credential.refresh(Request())
 
-            else:
-                default_credential_dir = '{}.json'.format(self._default_credential)
-                flow = InstalledAppFlow.from_client_secrets_file(default_credential_dir, SCOPES)
-                credential = flow.run_local_server(port=LOCALHOST_PORT)
+                else:
+                    default_credential_dir = '{}.json'.format(self._default_credential)
+                    flow = InstalledAppFlow.from_client_secrets_file(default_credential_dir, SCOPES)
+                    credential = flow.run_local_server(port=LOCALHOST_PORT)
+
+            except Exception:
+                print('Authentication Failed: Unable to reach authentication server')
+                logger.error('Unable to get auth token', exc_info=True)
+                return 0
 
             with open(access_token_file_path, 'wb') as token:
                 pickle.dump(credential, token)
