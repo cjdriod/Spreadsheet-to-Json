@@ -1,5 +1,6 @@
 .idea
 output
 venv
+log
 .env
 *.pyc

@@ -17,6 +17,8 @@ selected_output_dir = DEFAULT_OUTPUT_URI or os.path.join(os.getcwd(), 'output')
 
 
 def serve_application():
+    create_logger_dir()
+
     authentication = Auth(token=ACCESS_TOKEN, default_credential=CREDENTIAL_FILE)
     is_login = authentication.login()
 
@@ -24,14 +26,15 @@ def serve_application():
         job_list = []
 
         for source in [SOURCE_1, SOURCE_2]:
-            job_list.append({
-                "namespace": source.get('namespace'),
-                "sheet_name": source.get('sheet_name'),
-                "sheet_id": source.get('spreadsheet_id'),
-                "primary_key": source.get('primary_key'),
-                "credential": authentication.get_session_credential(),
-                "custom_sheet_range": source.get('custom_sheet_range'),
-            })
+            if source.get('namespace'):
+                job_list.append({
+                    "namespace": source.get('namespace'),
+                    "sheet_name": source.get('sheet_name'),
+                    "sheet_id": source.get('spreadsheet_id'),
+                    "primary_key": source.get('primary_key'),
+                    "credential": authentication.get_session_credential(),
+                    "custom_sheet_range": source.get('custom_sheet_range'),
+                })
 
         render_preset_directory_selection_options()
 
@@ -114,3 +117,9 @@ def get_output_directory_list(columns):
     elif isinstance(columns, list) and len(columns):
         return dict(zip(columns, columns))
     return dict()
+
+
+def create_logger_dir():
+    if not os.path.isdir('log'):
+        os.makedirs('log')
+
